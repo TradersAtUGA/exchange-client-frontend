@@ -44,3 +44,8 @@ npm install
 # or
 yarn install
 ```
+
+## Running the Project
+npm start
+# or
+yarn start
