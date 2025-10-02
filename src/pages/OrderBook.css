@@ -1,0 +1,367 @@
+/* OrderBook.css - Professional DOM Orderbook Styling */
+
+.orderbook-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px;
+  background: #000000;
+  min-height: 100vh;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.orderbook-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.symbol-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.symbol-name {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.symbol-description {
+  color: #9ca3af;
+  font-size: 14px;
+  margin: 0;
+}
+
+.last-price {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.last-price-label {
+  color: #9ca3af;
+  font-size: 12px;
+  margin: 0;
+}
+
+.market-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.buy-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: #16a34a;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+
+.buy-button:hover {
+  background: #15803d;
+}
+
+.sell-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+
+.sell-button:hover {
+  background: #b91c1c;
+}
+
+.orderbook-panel {
+  background: #111827;
+  border-radius: 8px;
+  border: 1px solid #374151;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.orderbook-header-row {
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  display: grid;
+  grid-template-columns: 1fr 1fr 120px 1fr 1fr;
+  height: 40px;
+  align-items: center;
+}
+
+.header-cell {
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d1d5db;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.header-cell.bid-size {
+  text-align: right;
+}
+
+.header-cell.bid {
+  text-align: right;
+}
+
+.header-cell.price {
+  text-align: center;
+}
+
+.header-cell.ask {
+  text-align: left;
+}
+
+.header-cell.ask-size {
+  text-align: left;
+}
+
+.orderbook-ladder {
+  height: 600px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
+}
+
+.orderbook-ladder::-webkit-scrollbar {
+  width: 6px;
+}
+
+.orderbook-ladder::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.orderbook-ladder::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 3px;
+}
+
+.orderbook-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 120px 1fr 1fr;
+  align-items: center;
+  height: 32px;
+  border-bottom: 1px solid #1f2937;
+  transition: background-color 0.15s;
+  position: relative;
+}
+
+.orderbook-row:hover {
+  background: rgba(31, 41, 55, 0.5);
+}
+
+.orderbook-row.center-row {
+  background: rgba(31, 41, 55, 0.3);
+}
+
+.orderbook-cell {
+  padding: 0 12px;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.bid-size-cell {
+  text-align: right;
+  position: relative;
+}
+
+.bid-size-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(34, 197, 94, 0.2);
+  z-index: 1;
+}
+
+.bid-size-text {
+  position: relative;
+  z-index: 10;
+  color: #4ade80;
+  font-size: 12px;
+}
+
+.bid-price-cell {
+  text-align: right;
+}
+
+.bid-price-button {
+  width: 100%;
+  text-align: right;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.bid-price-button:hover {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.bid-price-button.best-bid {
+  color: #86efac;
+  font-weight: bold;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.bid-price-button.normal-bid {
+  color: #4ade80;
+}
+
+.price-cell {
+  text-align: center;
+  font-weight: 500;
+}
+
+.price-display {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.price-display.best-bid {
+  color: #86efac;
+  font-weight: bold;
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.price-display.best-ask {
+  color: #fca5a5;
+  font-weight: bold;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.price-display.normal {
+  color: #d1d5db;
+}
+
+.ask-price-cell {
+  text-align: left;
+}
+
+.ask-price-button {
+  width: 100%;
+  text-align: left;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.ask-price-button:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.ask-price-button.best-ask {
+  color: #fca5a5;
+  font-weight: bold;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.ask-price-button.normal-ask {
+  color: #f87171;
+}
+
+.ask-size-cell {
+  text-align: left;
+  position: relative;
+}
+
+.ask-size-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background: rgba(239, 68, 68, 0.2);
+  z-index: 1;
+}
+
+.ask-size-text {
+  position: relative;
+  z-index: 10;
+  color: #f87171;
+  font-size: 12px;
+}
+
+.empty-cell {
+  color: #4b5563;
+}
+
+.market-info {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.market-info-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.market-info-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.market-info-label {
+  color: #6b7280;
+}
+
+.market-info-value {
+  color: #ffffff;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.market-info-value.bid {
+  color: #4ade80;
+}
+
+.market-info-value.ask {
+  color: #f87171;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  margin-right: 8px;
+}
