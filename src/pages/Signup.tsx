@@ -9,25 +9,33 @@ export default function Signup(){
     const [loading, setLoading ] = useState(false);
     const [error, setError] = useState("");
 
-    // function to handle sign up submission form
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setLoading(true);
-        setError("");
-    
-        try {
-        const response = await axios.post('http://localhost:8000/signup', { email, password });
-        const { access_token } = response.data;
-    
-        if (response.status === 200 && access_token) {
-            localStorage.setItem("access_token", access_token);
-            window.location.href = "/orderbook"; // redirect only on success
-        }
-        } catch (err) {
-        setError("Server is unavailable");
-        } finally {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+
+    const passwordValidation = /^(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+    if (!passwordValidation.test(password)) {
+        setError("Password must be at least 8 characters long, contain one uppercase letter, and one special character.");
         setLoading(false);
+        return;
+    }
+
+    try {
+        const response = await axios.post("http://localhost:8000/signup", { email, password });
+        const { access_token } = response.data;
+
+        if (response.status === 200 && access_token) {
+        localStorage.setItem("access_token", access_token);
+        window.location.href = "/orderbook"; 
         }
+    } catch (err) {
+        setError("Server is unavailable");
+    } finally {
+        setLoading(false);
+    }
     };
     // todo complete
     return(
