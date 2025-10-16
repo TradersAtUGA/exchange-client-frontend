@@ -4,16 +4,16 @@ import axios from "axios";
 
 export default function Login() {
   // start off as empty inputs 
-  const [email, updateEmail] = useState(""); 
-  const [password, updatePassword] = useState("");
-  const [loading, updateLoading] = useState(false)
-  const [error, updateError] = useState("")
+  const [email, setEmail] = useState(""); 
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   // function to handle form submissions
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    updateLoading(true);
-    updateError("");
+    setLoading(true);
+    setError("");
   
     try {
       const response = await axios.post('http://localhost:8000/login', { email, password });
@@ -23,13 +23,13 @@ export default function Login() {
         localStorage.setItem("access_token", access_token);
         window.location.href = "/orderbook"; // redirect only on success
       } else {
-        updateError("Login failed: Invalid credentials.");
+        setError("Login failed: Invalid credentials.");
       }
   
     } catch (err) {
-      updateError("Server is unavailable");
+      setError("Server is unavailable");
     } finally {
-      updateLoading(false);
+      setLoading(false);
     }
   };
 
@@ -45,7 +45,7 @@ export default function Login() {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => updateEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -56,7 +56,7 @@ export default function Login() {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => updatePassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
@@ -74,7 +74,7 @@ export default function Login() {
         <p>Log in to access the exchange</p>
         <div className="new-user-redirect">
           <p>New user?</p>
-          <a id="sign-up-redirect" href="/">
+          <a id="sign-up-redirect" href="/signup">
             Create an account
           </a>
         </div>
