@@ -1,0 +1,154 @@
+body {
+  background-color: black;
+  color: white;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.signupContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  gap: 60px;
+  padding: 40px;
+  box-sizing: border-box;
+  overflow-x: hidden; 
+  flex-wrap: wrap;
+}
+
+.signupInfo, .signupForm {
+  flex: 1 1 300px;   
+  min-width: 280px; 
+  max-width: 420px; 
+}
+
+.signupInfo {
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; 
+  align-items: flex-start; 
+  gap: 10px;
+  margin-left: 0; 
+  max-width: 450px;
+  padding-top: -60px; 
+}
+
+.signupInfo h1 {
+  font-size: 52px; 
+  font-weight: 400;
+  font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+  line-height: 1.1;
+  color: white;
+}
+
+.signupInfo p {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #e0e0e0;
+  margin: 0;
+  font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+
+
+.divider {
+  width: 2px;
+  background-color: rgba(255, 255, 255, 0.5);
+  height: 70%;
+  min-height: 500px;
+}
+
+.signupForm {
+  background-color: #000000;
+  padding: 40px;
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup input {
+  border: 2px solid #8d8d8d;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 16px;
+  outline: none;
+  background-color: #000;
+  color: rgb(255, 255, 255);
+  transition: all 0.3s ease;
+}
+
+.errorText{
+  color: #ff0000;
+}
+
+.nameRow {
+  display: flex;
+  gap:10px;
+}
+.nameRow .inputGroup {
+  flex: 1; 
+  gap: 10px;               
+}
+.signupButton {
+  width: 100%;               
+  padding: 14px 0;           
+  border: none;
+  background-color: white;
+  border-radius:10px;
+  color: black;
+  font-size: 18px;            
+  font-weight: 700;           
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.signupBotton:hover {
+  background-color: #cfcfcf;
+  transform: translateY(-1px); /* subtle hover lift */
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+}
+
+.redirectText {
+  text-align: center;
+  font-size: 14px;
+  color: white;
+}
+
+.logInRedirect {
+  color: white;
+  font-weight: bold;
+  transition: color 0.3s ease;
+  text-decoration: underline;
+
+}
+
+#logInRedirect:hover {
+  color: rgba(145, 142, 142, 0.6);
+}
+
+@media (max-width: 900px) {
+  .signupContainer {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .signupForm {
+    width: 90%;
+  }
+}

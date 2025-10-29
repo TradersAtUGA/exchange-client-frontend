@@ -1,0 +1,145 @@
+:global(body) {
+  background-color: rgb(0, 0, 0);
+  color: white;
+  overflow-y: hidden; 
+
+}
+
+.loginForm {
+  background-color: #000000;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  width: 450px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  gap: 40px;
+  padding: 20px;
+}
+
+.loginForm h1 {
+  margin-top: -10px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.inputGroup label {
+  color: #ffffff;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.inputGroup input {
+  border: 2px solid #fff;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  outline: none;
+  background-color: #000000;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.divider {
+  width: 2px;
+  background-color: white;
+  height: 600px;
+}
+
+.loginButton {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.loginButton:hover {
+  background-color: #959595;
+}
+
+.welcomeSection {
+  color: white;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 150px;
+  gap: 20px;
+}
+
+.welcomeSection h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 48px;
+  font-weight: 800;
+  background: linear-gradient(
+    to right,
+    indigo,
+    lightblue,
+    skyblue,
+    fuchsia,
+    skyblue,
+    lightblue,
+    indigo
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: gradientMove 5s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.welcomeSection p {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.signUpRedirect {
+  color: white;
+  text-decoration: underline;
+
+}
+
+.signUpRedirect:hover {
+  color: rgba(217, 209, 209, 0.584);
+}
+
+.newUserRedirect {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight:bold;
+}
