@@ -35,7 +35,7 @@ export default function Signup() {
     }
     
     try {
-      const response = await axios.post("http://localhost:8000/signup", {
+      const response = await axios.post("http://localhost:8000/auth/signup", {
         email,
         password,
       });
@@ -45,8 +45,14 @@ export default function Signup() {
         localStorage.setItem("access_token", access_token);
         window.location.href = "/orderbook";
       }
-    } catch (err) {
-      setError("Server is unavailable");
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        setError("Email is already registered.");
+      } else if (err.response) {
+        setError(err.response.data?.detail || "Signup failed.");
+      } else {
+        setError("Server is unavailable.");
+      }
     } finally {
       setLoading(false);
     }

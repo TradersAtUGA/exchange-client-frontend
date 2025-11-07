@@ -16,7 +16,7 @@ export default function Login() {
     setError("");
   
     try {
-      const response = await axios.post("http://localhost:8000/login", { email, password });
+      const response = await axios.post("http://localhost:8000/auth/login", { email, password });
       const { access_token } = response.data;
   
       if (response.status === 200 && access_token) {
@@ -26,8 +26,16 @@ export default function Login() {
         setError("Login failed: Invalid credentials.");
       }
   
-    } catch (err) {
-      setError("Server is unavailable");
+    } catch (err: any) {
+      if (err.response) {
+        if (err.response.status === 401) {
+          setError("Invalid email or password.");
+        } else {
+          setError(`Error: ${err.response.data?.detail || "Something went wrong."}`);
+        }
+      } else if (err.request) {
+        setError("Server is unavailable.");
+      }
     } finally {
       setLoading(false);
     }
