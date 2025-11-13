@@ -1,5 +1,6 @@
 // src/pages/OrderBook.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Navbar from "../components/Navbar";
 import "./OrderBook.css";
 
 type Level = {
@@ -11,7 +12,7 @@ type Level = {
 
 //hard coded data
 
-export default function OrderBook(): JSX.Element {
+export default function OrderBook() {
   const [levels, setLevels] = useState<Level[]>([]);
 
   useEffect(() => {
@@ -75,9 +76,11 @@ export default function OrderBook(): JSX.Element {
   };
 
   return (
-    <div className="orderbook-container">
-      {/* Header with symbol info and market buttons */}
-      <div className="orderbook-header">
+    <>
+      <Navbar />
+      <div className="orderbook-container">
+        {/* Header with symbol info and market buttons */}
+        <div className="orderbook-header">
         <div className="symbol-info">
           <div>
             <div className="symbol-name">Tesla</div>
@@ -230,6 +233,7 @@ export default function OrderBook(): JSX.Element {
           Live Data
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

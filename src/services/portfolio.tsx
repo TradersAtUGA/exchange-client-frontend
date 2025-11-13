@@ -2,8 +2,24 @@ import axios from "axios"
 
 
 const api = axios.create({
-  baseURL: "http://localhost:8000"
+    baseURL: "http://localhost:8000"
 });
+
+// attach Authorization header with access_token from localStorage to all requests
+api.interceptors.request.use(
+    (config) => {
+        try {
+            const token = localStorage.getItem("access_token");
+            if (token) {
+                config.headers = { ...(config.headers as any), Authorization: `Bearer ${token}` };
+            }
+        } catch (e) {
+            // ignore localStorage errors (e.g. not available)
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 interface HoldingOut {
     holdingId: number,
@@ -35,7 +51,7 @@ export async function createUserPortfolio(
     portfolioData: { name: string, description: string | null}
 ): Promise<PortfolioOut>
 {
-    const res = await api.post(`/users/${userId}/portfolios`, portfolioData)
+    const res = await api.post(`/users/portfolios`, portfolioData)
     return res.data
 }
 
@@ -43,7 +59,7 @@ export async function getUserPortfolios(
     userId: number
 ): Promise<PortfolioOut[]>
 {
-    const res = await api.get(`users/${userId}/portfolios`)
+    const res = await api.get(`/users/portfolios`)
     return res.data;
 }
 
