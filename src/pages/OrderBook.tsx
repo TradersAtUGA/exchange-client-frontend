@@ -1,5 +1,6 @@
 // src/pages/OrderBook.tsx
 import React, { useEffect, useMemo, useState } from "react";
+import BuySellModal from "../components/BuySellModal";
 import "./OrderBook.css";
 
 type Level = {
@@ -11,8 +12,16 @@ type Level = {
 
 //hard coded data
 
-export default function OrderBook(): JSX.Element {
+export default function OrderBook() {
   const [levels, setLevels] = useState<Level[]>([]);
+
+  // Placing orders
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [orderSide, setOrderSide] = useState<"buy" | "sell" | null>(null);
+  const [orderType, setOrderType] = useState<"market" | "limit">("market");
+  const [limitPrice, setLimitPrice] = useState<number | null>(null);
+  const [qty, setQty] = useState("");
+
 
   useEffect(() => {
     const mid = 2769.5; 
@@ -55,26 +64,47 @@ export default function OrderBook(): JSX.Element {
     return a?.price;
   }, [levels]);
 
-  // --- Interaction handlers (wire these to backend later) ---
-  const handleBuyMarket = () => {
-    console.log("BUY MARKET clicked");
-    // TODO: call your backend or emit to websocket
+  const openMarketOrderModal = (side: "buy" | "sell") => {
+    setOrderSide(side);
+    setIsModalOpen(true);
   };
 
-  const handleSellMarket = () => {
-    console.log("SELL MARKET clicked");
-    // TODO
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setOrderSide(null);
+  };
+
+  // --- Interaction handlers (wire these to backend later) ---
+  const handleClickMarketBuy = () => {
+    setOrderSide("buy");
+    setOrderType("market");
+    setIsModalOpen(true);
+  };
+
+  const handleClickMarketSell = () => {
+    setOrderSide("sell");
+    setOrderType("market");
+    setIsModalOpen(true);
   };
 
   const handleClickLevelBuy = (price: number) => {
-    console.log("Place BUY at price:", price);
-  };
+  setOrderSide("buy");
+  setOrderType("limit");
+  setLimitPrice(price);
+  setIsModalOpen(true);
+};
 
-  const handleClickLevelSell = (price: number) => {
-    console.log("Place SELL at price:", price);
-  };
+const handleClickLevelSell = (price: number) => {
+  setOrderSide("sell");
+  setOrderType("limit");
+  setLimitPrice(price);
+  setIsModalOpen(true);
+};
+
+  
 
   return (
+    <>
     <div className="orderbook-container">
       {/* Header with symbol info and market buttons */}
       <div className="orderbook-header">
@@ -91,13 +121,13 @@ export default function OrderBook(): JSX.Element {
 
         <div className="market-buttons">
           <button
-            onClick={handleBuyMarket}
+            onClick={handleClickMarketBuy}
             className="buy-button"
           >
             BUY MARKET
           </button>
           <button
-            onClick={handleSellMarket}
+            onClick={handleClickMarketSell}
             className="sell-button"
           >
             SELL MARKET
@@ -231,5 +261,30 @@ export default function OrderBook(): JSX.Element {
         </div>
       </div>
     </div>
+    <BuySellModal
+      isOpen={isModalOpen}
+      orderSide={orderSide}
+      orderType={orderType}
+      setOrderType={setOrderType}
+      limitPrice={limitPrice}
+      setLimitPrice={setLimitPrice}
+      qty={qty}
+      onQtyChange={setQty}
+      onClose={() => {
+        setIsModalOpen(false);
+        setQty("");
+        setLimitPrice(null);
+      }}
+      onConfirm={() => {
+        console.log({
+          side: orderSide,
+          type: orderType,
+          qty,
+          limitPrice,
+        });
+        setIsModalOpen(false);
+      }}
+    />
+    </>
   );
 }
