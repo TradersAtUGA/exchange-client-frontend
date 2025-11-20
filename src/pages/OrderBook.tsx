@@ -2,6 +2,7 @@
 import Navbar from "../components/Navbar";
 import React, { useEffect, useMemo, useState } from "react";
 import BuySellModal from "../components/BuySellModal";
+import { useParams } from "react-router-dom";
 import "./OrderBook.css";
 
 type Level = {
@@ -14,6 +15,7 @@ type Level = {
 //hard coded data
 
 export default function OrderBook() {
+  const { symbol = "TSLA" } = useParams<{ symbol: string }>(); 
   const [levels, setLevels] = useState<Level[]>([]);
 
   // Placing orders
@@ -23,9 +25,10 @@ export default function OrderBook() {
   const [limitPrice, setLimitPrice] = useState<number | null>(null);
   const [qty, setQty] = useState("");
 
-
+  //TODO: Fetch actual orderbook data
   useEffect(() => {
-    const mid = 2769.5; 
+    const mids: Record<string, number> = { TSLA: 276.9, AAPL: 212.1, MSFT: 415.8 };
+    const mid = mids[symbol.toUpperCase()] ?? 100;
     const tick = 0.25;
     const rows = 41; 
     const top = mid + Math.floor(rows / 2) * tick;
@@ -112,8 +115,8 @@ const handleClickLevelSell = (price: number) => {
         <div className="orderbook-header">
         <div className="symbol-info">
           <div>
-            <div className="symbol-name">Tesla</div>
-            <div className="symbol-description">Telsa</div>
+            <div className="symbol-name">{symbol.toUpperCase()}</div>
+            <div className="symbol-description">{symbol.toUpperCase()}</div>
           </div>
           <div>
             <div className="last-price">{levels[Math.floor(levels.length/2)]?.price?.toFixed(2) ?? "-"}</div>

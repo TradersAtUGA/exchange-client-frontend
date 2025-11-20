@@ -7,6 +7,7 @@ import Signup from "./pages/Signup";
 import Portfolio from "./pages/Portfolio";
 import CreatePortfolio from "./pages/CreatePortfolio";
 import PortfolioDetail from "./pages/PortfolioDetail";
+import SymbolHome from "./pages/SymbolHome";
 
 function App() {
   return (
@@ -15,11 +16,13 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/orderbook" element={<OrderBook />} />
+          <Route path="/orderbook/:symbol" element={<OrderBook />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/portfolio/create" element={<CreatePortfolio />} />
           <Route path="/portfolio/:portfolioId" element={<PortfolioDetail />} />
+          <Route path="/symbolhome" element={<SymbolHome />} />
+
         </Routes>
       </Router>
     </AuthProvider>

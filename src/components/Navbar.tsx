@@ -13,15 +13,15 @@ export default function Navbar() {
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
-        <Link to={userId ? "/orderbook" : "/"} className={styles.logo}>
+        <Link to={userId ? "/symbolhome" : "/"} className={styles.logo}>
           Traders@UGA
         </Link>
 
         <div className={styles.navLinks}>
           {userId ? (
             <>
-              <Link to="/orderbook" className={styles.navLink}>
-                Order Book
+              <Link to="/symbolhome" className={styles.navLink}>
+                Home
               </Link>
               <Link to="/portfolio" className={styles.navLink}>
                 Portfolios
