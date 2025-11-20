@@ -1,4 +1,5 @@
 // src/pages/OrderBook.tsx
+import Navbar from "../components/Navbar";
 import React, { useEffect, useMemo, useState } from "react";
 import BuySellModal from "../components/BuySellModal";
 import "./OrderBook.css";
@@ -105,9 +106,10 @@ const handleClickLevelSell = (price: number) => {
 
   return (
     <>
-    <div className="orderbook-container">
-      {/* Header with symbol info and market buttons */}
-      <div className="orderbook-header">
+      <Navbar />
+      <div className="orderbook-container">
+        {/* Header with symbol info and market buttons */}
+        <div className="orderbook-header">
         <div className="symbol-info">
           <div>
             <div className="symbol-name">Tesla</div>
