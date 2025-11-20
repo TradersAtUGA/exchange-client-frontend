@@ -22,7 +22,7 @@ export default function Login() {
   
       if (response.status === 200 && access_token) {
         localStorage.setItem("access_token", access_token);
-        window.location.href = "/orderbook"; // redirect only on success
+        window.location.href = "/symbolhome"; // redirect only on success
       } else {
         setError("Login failed: Invalid credentials.");
       }
