@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import styles from "./Login.module.css";
+import Navbar from "../components/Navbar";
 
 export default function Login() {
   // start off as empty inputs 
@@ -42,7 +43,9 @@ export default function Login() {
   };
 
   return (
-    <div className={styles.loginContainer}>
+    <>
+      <Navbar />
+      <div className={styles.loginContainer}>
       <form className={styles.loginForm} onSubmit={handleSubmit}>
         <h1>Log in</h1>
 
@@ -89,6 +92,7 @@ export default function Login() {
           </a>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

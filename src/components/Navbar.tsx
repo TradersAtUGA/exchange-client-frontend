@@ -3,7 +3,7 @@ import { useAuth } from "./AuthContext";
 import styles from "../styles/AuthNavbar.module.css";
 
 export default function Navbar() {
-  const { logout } = useAuth();
+  const { userId, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -13,22 +13,39 @@ export default function Navbar() {
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
-        <Link to="/orderbook" className={styles.logo}>
+        <Link to={userId ? "/orderbook" : "/"} className={styles.logo}>
           Traders@UGA
         </Link>
-        
+
         <div className={styles.navLinks}>
-          <Link to="/orderbook" className={styles.navLink}>
-            Order Book
-          </Link>
-          <Link to="/portfolio" className={styles.navLink}>
-            Portfolios
-          </Link>
+          {userId ? (
+            <>
+              <Link to="/orderbook" className={styles.navLink}>
+                Order Book
+              </Link>
+              <Link to="/portfolio" className={styles.navLink}>
+                Portfolios
+              </Link>
+            </>
+          ) : null}
         </div>
 
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Logout
-        </button>
+        <div className={styles.authButtons}>
+          {userId ? (
+            <button onClick={handleLogout} className={styles.logoutButton}>
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link to="/login" className={styles.authButton}>
+                Login
+              </Link>
+              <Link to="/signup" className={styles.authButton}>
+                Sign up
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );

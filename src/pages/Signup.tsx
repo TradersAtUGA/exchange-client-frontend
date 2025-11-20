@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./Signup.module.css";
 import axios from "axios";
-import AuthNavbar from "../components/AuthNavbar";
+import Navbar from "../components/Navbar";
 
 
 export default function Signup() {
@@ -59,8 +59,8 @@ export default function Signup() {
   };
 
   return (
-    <div>
-    <AuthNavbar />
+    <>
+    <Navbar />
     <div className={styles.signupContainer}>
       <div className={styles.signupInfo}>
         <h1>Create your login</h1>
@@ -141,7 +141,6 @@ export default function Signup() {
 
       </form>
     </div>
-        </div>
-
+    </>
   );
 }

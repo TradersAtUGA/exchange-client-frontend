@@ -98,3 +98,40 @@
   font-weight: 600;
   color: white;
 }
+
+.authButtons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.authButton {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #374151;
+  color: #d1d5db;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.authButton:hover {
+  background: #1f2937;
+  color: #ffffff;
+}
+
+.primaryButton {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: linear-gradient(to right, indigo, skyblue);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.primaryButton:hover {
+  opacity: 0.9;
+}
