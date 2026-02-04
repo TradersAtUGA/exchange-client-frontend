@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import BuySellModal from "../components/BuySellModal";
 import { useParams } from "react-router-dom";
 import "./OrderBook.css";
+import { getTickerBySymbol } from "../services/ticker";
 
 type Level = {
   // undefined bid or ask sizes mean there is no volume at that price
@@ -12,10 +13,17 @@ type Level = {
   askSize?: number; 
 };
 
+type Ticker = {
+  ticker_id: number;
+  symbol: string;
+  name: string;
+}
+
 //hard coded data
 
 export default function OrderBook() {
   const { symbol = "TSLA" } = useParams<{ symbol: string }>(); 
+  const [ticker, setTicker] = useState<Ticker | null>(null);
   const [levels, setLevels] = useState<Level[]>([]);
 
   // Placing orders
@@ -23,12 +31,26 @@ export default function OrderBook() {
   const [orderSide, setOrderSide] = useState<"buy" | "sell" | null>(null);
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [limitPrice, setLimitPrice] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [qty, setQty] = useState("");
 
-  //TODO: Fetch actual orderbook data
+  // get ticker info
   useEffect(() => {
-    const mids: Record<string, number> = { TSLA: 276.9, AAPL: 212.1, MSFT: 415.8 };
-    const mid = mids[symbol.toUpperCase()] ?? 100;
+    if (!symbol) return;
+    async function fetchTicker() {
+      try {
+        const data = await getTickerBySymbol(symbol);
+        setTicker(data);
+      } catch (error) {
+        console.error("Error fetching ticker:", error);
+        setError(error.message || "Failed to fetch ticker information.");
+      }
+    }
+    fetchTicker();
+  }, [symbol]);
+
+  useEffect(() => {
+    const mid = 100;
     const tick = 0.25;
     const rows = 41; 
     const top = mid + Math.floor(rows / 2) * tick;
@@ -105,7 +127,27 @@ const handleClickLevelSell = (price: number) => {
   setIsModalOpen(true);
 };
 
-  
+  if (!symbol) {
+    return <> 
+        <Navbar />
+        <div className="orderbook-container">
+          <div style={{ color: '#fff', textAlign: 'center', padding: '40px' }}> 
+            No symbol found.
+          </div>
+        </div>
+    </>
+  }
+
+  if (error) {
+    return <>
+        <Navbar />
+        <div className="orderbook-container">
+          <div style={{ color: '#fff', textAlign: 'center', padding: '40px' }}>
+            {error}
+          </div>
+        </div>
+      </>
+  }
 
   return (
     <>
@@ -116,7 +158,7 @@ const handleClickLevelSell = (price: number) => {
         <div className="symbol-info">
           <div>
             <div className="symbol-name">{symbol.toUpperCase()}</div>
-            <div className="symbol-description">{symbol.toUpperCase()}</div>
+            <div className="symbol-description">{ticker?.name}</div>
           </div>
           <div>
             <div className="last-price">{levels[Math.floor(levels.length/2)]?.price?.toFixed(2) ?? "-"}</div>
