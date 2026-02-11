@@ -39,11 +39,9 @@ export default function Signup() {
         email,
         password,
       });
-      const { access_token } = response.data;
 
-      if (response.status === 200 && access_token) {
-        localStorage.setItem("access_token", access_token);
-        window.location.href = "/orderbook";
+      if (response.status === 201) {
+        window.location.href = "/login";
       }
     } catch (err: any) {
       if (err.response?.status === 409) {

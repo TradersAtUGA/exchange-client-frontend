@@ -1,0 +1,118 @@
+.navbar {
+  background-color: #000000;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 1000;
+  border-bottom: 1px solid #374151;
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.logo {
+  height: 60px;
+  width: auto;
+}
+
+.title {
+  font-size: 25px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .title {
+    font-size: 20px;
+  }
+  
+  .logo {
+    height: 50px;
+  }
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.navLink {
+  background: transparent;
+  border: none;
+  color: #d1d5db;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.navLink:hover {
+  color: #ffffff;
+  background: #1f2937;
+}
+
+.logoutButton {
+  background: #dc2626;
+  border: none;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 16px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.logoutButton:hover {
+  background: #b91c1c;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 10px 12px;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+  
+  .logo {
+    height: 40px;
+  }
+
+  .navRight {
+    gap: 6px;
+  }
+
+  .navLink,
+  .logoutButton {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+}
+
