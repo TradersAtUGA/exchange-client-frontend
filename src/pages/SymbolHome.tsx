@@ -3,6 +3,16 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../components/AuthContext";
 import styles from "./SymbolHome.module.css";
+import {getTickers} from "../services/ticker";
+
+type Ticker = {
+  ticker_id: number;
+  symbol: string;
+  name: string;
+  change: number;
+  last: number;
+  sector: string;
+}
 
 // Placeholder symbol data for now
 const stubSymbols = [
@@ -18,23 +28,39 @@ export default function SymbolHome() {
   const { userId } = useAuth();
   const [query, setQuery] = useState("");
   const [symbols, setSymbols] = useState(stubSymbols);
+  const [tickers, setTickers] = useState<Ticker[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!userId && !token) navigate("/login");
     // TODO: fetch symbols from backend here and setSymbols(response)
+    async function fetchTickers() {
+      try {
+        const data = await getTickers();
+        const normalized = data.map(t => ({
+          ...t,
+          change: 0,
+          last: 0,
+          sector: "N/A"
+        }));
+        setTickers(normalized);
+      } catch (error) {
+        console.error("Error fetching tickers:", error);
+      }
+    }
+    fetchTickers();
   }, [userId, navigate]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return symbols;
-    return symbols.filter(
-      (s) => s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+    if (!q) return tickers;
+    return tickers.filter(
+      (t) => t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q)
     );
-  }, [symbols, query]);
+  }, [tickers, query]);
 
-  const handleSelect = (symbol: string) => {
-    navigate(`/orderbook/${symbol.toUpperCase()}`);
+  const handleSelect = (ticker: Ticker) => {
+    navigate(`/orderbook/${ticker.symbol.toUpperCase()}`);
   };
 
   return (
@@ -55,10 +81,10 @@ export default function SymbolHome() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && filtered[0]) handleSelect(filtered[0].symbol);
+                  if (e.key === "Enter" && filtered[0]) handleSelect(filtered[0]);
                 }}
               />
-              <button className={styles.searchButton} onClick={() => filtered[0] && handleSelect(filtered[0].symbol)}>
+              <button className={styles.searchButton} onClick={() => filtered[0] && handleSelect(filtered[0])}>
                 View Order Book
               </button>
             </div>
@@ -67,7 +93,7 @@ export default function SymbolHome() {
 
         <section className={styles.grid}>
           {filtered.map((s) => (
-            <button key={s.symbol} className={styles.card} onClick={() => handleSelect(s.symbol)}>
+            <button key={s.symbol} className={styles.card} onClick={() => handleSelect(s)}>
               <div className={styles.cardHeader}>
                 <span className={styles.symbol}>{s.symbol}</span>
                 <span className={`${styles.change} ${s.change >= 0 ? styles.up : styles.down}`}>
