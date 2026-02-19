@@ -1,6 +1,11 @@
 import React from "react";
 import styles from "../styles/BuySellModal.module.css";
 
+interface PortfolioOption {
+  portfolioId: number;
+  name: string;
+}
+
 type Props = {
   isOpen: boolean;
   orderSide: "buy" | "sell" | null;
@@ -12,6 +17,11 @@ type Props = {
   onQtyChange: (v: string) => void;
   onClose: () => void;
   onConfirm: () => void;
+  portfolios: PortfolioOption[];
+  selectedPortfolioId: number | null;
+  onPortfolioChange: (id: number) => void;
+  submitting?: boolean;
+  submitError?: string | null;
 };
 
 export default function BuySellModal({
@@ -25,6 +35,11 @@ export default function BuySellModal({
   onQtyChange,
   onClose,
   onConfirm,
+  portfolios,
+  selectedPortfolioId,
+  onPortfolioChange,
+  submitting = false,
+  submitError = null,
 }: Props) {
   if (!isOpen) return null;
 
@@ -63,7 +78,32 @@ export default function BuySellModal({
 
         {/* Form fields */}
         <div className={styles.content}>
-          
+
+          {/* Portfolio selector */}
+          <div className={styles.inputGroup}>
+            <label>Portfolio</label>
+            {portfolios.length === 0 ? (
+              <div style={{ color: "#999", fontSize: 14 }}>
+                No portfolios found, please create one first
+              </div>
+            ) : (
+              <select
+                className={styles.input}
+                value={selectedPortfolioId ?? ""}
+                onChange={(e) => onPortfolioChange(Number(e.target.value))}
+              >
+                <option value="" disabled>
+                  Select a portfolio
+                </option>
+                {portfolios.map((p) => (
+                  <option key={p.portfolioId} value={p.portfolioId}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
           {orderType === "limit" && (
             <div className={styles.inputGroup}>
               <label>Limit Price</label>
@@ -86,16 +126,21 @@ export default function BuySellModal({
               className={styles.input}
             />
           </div>
+
+          {submitError && (
+            <div style={{ color: "#ef4444", fontSize: 14 }}>{submitError}</div>
+          )}
         </div>
 
         <div className={styles.actions}>
           <button
             className={`${styles.confirmButton} ${sideColor}`}
             onClick={onConfirm}
+            disabled={submitting}
           >
-            Confirm
+            {submitting ? "Processing..." : "Confirm"}
           </button>
-          <button className={styles.closeButton} onClick={onClose}>
+          <button className={styles.closeButton} onClick={onClose} disabled={submitting}>
             Cancel
           </button>
         </div>
