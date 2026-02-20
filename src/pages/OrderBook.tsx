@@ -9,6 +9,7 @@ import { getUserPortfolios } from "../services/portfolio";
 import { createTransaction } from "../services/transaction";
 import { useAuth } from "../components/AuthContext";
 import TradeLog from "../components/TradeLog";
+import CandleChart from "../components/CandleChart";
 
 type Level = {
   // undefined bid or ask sizes mean there is no volume at that price
@@ -380,109 +381,115 @@ export default function OrderBook() {
           )}
           <div className="orderbook-panel" style={{ flex: 2 }}>
             <div className="orderbook-header-row">
-            <div className="header-cell bid-size">Bid Size</div>
-            <div className="header-cell bid">Bid</div>
-            <div className="header-cell price">Price</div>
-            <div className="header-cell ask">Ask</div>
-            <div className="header-cell ask-size">Ask Size</div>
-          </div>
+              <div className="header-cell bid-size">Bid Size</div>
+              <div className="header-cell bid">Bid</div>
+              <div className="header-cell price">Price</div>
+              <div className="header-cell ask">Ask</div>
+              <div className="header-cell ask-size">Ask Size</div>
+            </div>
 
-          {/* Orderbook ladder */}
-          <div className="orderbook-ladder">
-            {levels.map((lvl, index) => {
-              const bidPct = lvl.bidSize ? Math.min(100, (lvl.bidSize / maxSize) * 100) : 0;
-              const askPct = lvl.askSize ? Math.min(100, (lvl.askSize / maxSize) * 100) : 0;
+            {/* Orderbook ladder */}
+            <div className="orderbook-ladder">
+              {levels.map((lvl, index) => {
+                const bidPct = lvl.bidSize ? Math.min(100, (lvl.bidSize / maxSize) * 100) : 0;
+                const askPct = lvl.askSize ? Math.min(100, (lvl.askSize / maxSize) * 100) : 0;
 
-              const isBestBid = bestBid === lvl.price;
-              const isBestAsk = bestAsk === lvl.price;
-              const isCenter = index === Math.floor(levels.length / 2);
+                const isBestBid = bestBid === lvl.price;
+                const isBestAsk = bestAsk === lvl.price;
+                const isCenter = index === Math.floor(levels.length / 2);
 
-              return (
-                <div
-                  key={lvl.price}
-                  ref={isCenter ? centerRowRef : null}
-                  className={`orderbook-row ${isCenter ? 'center-row' : ''}`}
-                >
-                  {/* Bid Size */}
-                  <div className="orderbook-cell bid-size-cell">
-                    {lvl.bidSize ? (
-                      <>
-                        <div
-                          className="bid-size-bar"
-                          style={{ width: `${bidPct}%` }}
-                        />
-                        <div className="bid-size-text">
-                          {lvl.bidSize.toLocaleString()}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="empty-cell">-</div>
-                    )}
-                  </div>
+                return (
+                  <div
+                    key={lvl.price}
+                    ref={isCenter ? centerRowRef : null}
+                    className={`orderbook-row ${isCenter ? 'center-row' : ''}`}
+                  >
+                    {/* Bid Size */}
+                    <div className="orderbook-cell bid-size-cell">
+                      {lvl.bidSize ? (
+                        <>
+                          <div
+                            className="bid-size-bar"
+                            style={{ width: `${bidPct}%` }}
+                          />
+                          <div className="bid-size-text">
+                            {lvl.bidSize.toLocaleString()}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="empty-cell">-</div>
+                      )}
+                    </div>
 
-                  {/* Bid Price */}
-                  <div className="orderbook-cell bid-price-cell">
-                    {lvl.bidSize ? (
-                      <button
-                        className={`bid-price-button ${isBestBid ? 'best-bid' : 'normal-bid'}`}
-                        onClick={() => handleClickLevelSell(lvl.price)}
-                      >
+                    {/* Bid Price */}
+                    <div className="orderbook-cell bid-price-cell">
+                      {lvl.bidSize ? (
+                        <button
+                          className={`bid-price-button ${isBestBid ? 'best-bid' : 'normal-bid'}`}
+                          onClick={() => handleClickLevelSell(lvl.price)}
+                        >
+                          {lvl.price.toFixed(2)}
+                        </button>
+                      ) : (
+                        <div className="empty-cell">-</div>
+                      )}
+                    </div>
+
+                    {/* Center Price */}
+                    <div className="orderbook-cell price-cell">
+                      <div className={`price-display ${isBestBid ? 'best-bid' :
+                        isBestAsk ? 'best-ask' :
+                          'normal'
+                        }`}>
                         {lvl.price.toFixed(2)}
-                      </button>
-                    ) : (
-                      <div className="empty-cell">-</div>
-                    )}
-                  </div>
+                      </div>
+                    </div>
 
-                  {/* Center Price */}
-                  <div className="orderbook-cell price-cell">
-                    <div className={`price-display ${isBestBid ? 'best-bid' :
-                      isBestAsk ? 'best-ask' :
-                        'normal'
-                      }`}>
-                      {lvl.price.toFixed(2)}
+                    {/* Ask Price */}
+                    <div className="orderbook-cell ask-price-cell">
+                      {lvl.askSize ? (
+                        <button
+                          className={`ask-price-button ${isBestAsk ? 'best-ask' : 'normal-ask'}`}
+                          onClick={() => handleClickLevelBuy(lvl.price)}
+                        >
+                          {lvl.price.toFixed(2)}
+                        </button>
+                      ) : (
+                        <div className="empty-cell">-</div>
+                      )}
+                    </div>
+
+                    {/* Ask Size */}
+                    <div className="orderbook-cell ask-size-cell">
+                      {lvl.askSize ? (
+                        <>
+                          <div
+                            className="ask-size-bar"
+                            style={{ width: `${askPct}%` }}
+                          />
+                          <div className="ask-size-text">
+                            {lvl.askSize.toLocaleString()}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="empty-cell">-</div>
+                      )}
                     </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  {/* Ask Price */}
-                  <div className="orderbook-cell ask-price-cell">
-                    {lvl.askSize ? (
-                      <button
-                        className={`ask-price-button ${isBestAsk ? 'best-ask' : 'normal-ask'}`}
-                        onClick={() => handleClickLevelBuy(lvl.price)}
-                      >
-                        {lvl.price.toFixed(2)}
-                      </button>
-                    ) : (
-                      <div className="empty-cell">-</div>
-                    )}
-                  </div>
+            
 
-                  {/* Ask Size */}
-                  <div className="orderbook-cell ask-size-cell">
-                    {lvl.askSize ? (
-                      <>
-                        <div
-                          className="ask-size-bar"
-                          style={{ width: `${askPct}%` }}
-                        />
-                        <div className="ask-size-text">
-                          {lvl.askSize.toLocaleString()}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="empty-cell">-</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
           </div>
+          <div style={{ flex: "0 1 auto", minHeight: 0 }}>
+            <CandleChart trades={tradeLog} />
           </div>
-          
+
         </div>
 
-        
+
 
         {/* Spread and market info */}
         <div className="market-info">

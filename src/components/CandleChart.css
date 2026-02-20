@@ -1,0 +1,46 @@
+.candlechart {
+  background: #0a0a0a;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.candlechart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #1f2937;
+  background: #111827;
+}
+
+.candlechart-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #d1d5db;
+  letter-spacing: 0.1em;
+}
+
+.candlechart-subtitle {
+  font-size: 10px;
+  color: #4b5563;
+}
+
+.candlechart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  font-size: 11px;
+  color: #4b5563;
+}
+
+.candlechart-svg {
+  display: block;
+  width: 100%;
+  flex: 1;
+}
