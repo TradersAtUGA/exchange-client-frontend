@@ -31,8 +31,8 @@ interface HoldingOut {
 interface TransactionOut{
     transactionId: number,
     portfolioId: number,
-    tickerId: number,
-    type: "YES" | "NO",
+    ticker_id: number,
+    type: "BUY" | "SELL",
     quantity: number,
     price: number,
     total: number,

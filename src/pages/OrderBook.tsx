@@ -5,6 +5,9 @@ import BuySellModal from "../components/BuySellModal";
 import { useParams } from "react-router-dom";
 import "./OrderBook.css";
 import { getTickerBySymbol } from "../services/ticker";
+import { getUserPortfolios } from "../services/portfolio";
+import { createTransaction } from "../services/transaction";
+import { useAuth } from "../components/AuthContext";
 
 type Level = {
   // undefined bid or ask sizes mean there is no volume at that price
@@ -34,6 +37,13 @@ export default function OrderBook() {
   const [error, setError] = useState<string | null>(null);
   const [qty, setQty] = useState("");
 
+  // Portfolio selection
+  const { userId } = useAuth();
+  const [portfolios, setPortfolios] = useState<{ portfolioId: number; name: string }[]>([]);
+  const [selectedPortfolioId, setSelectedPortfolioId] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   // get ticker info
   useEffect(() => {
     if (!symbol) return;
@@ -48,6 +58,23 @@ export default function OrderBook() {
     }
     fetchTicker();
   }, [symbol]);
+
+  // fetch user portfolios
+  useEffect(() => {
+    if (!userId) return;
+    async function fetchPortfolios() {
+      try {
+        const data = await getUserPortfolios(userId!);
+        setPortfolios(data.map((p) => ({ portfolioId: p.portfolioId, name: p.name })));
+        if (data.length > 0) {
+          setSelectedPortfolioId(data[0].portfolioId);
+        }
+      } catch (err) {
+        console.error("Error fetching portfolios:", err);
+      }
+    }
+    fetchPortfolios();
+  }, [userId]);
 
   useEffect(() => {
     const mid = 100;
@@ -317,19 +344,64 @@ const handleClickLevelSell = (price: number) => {
       setLimitPrice={setLimitPrice}
       qty={qty}
       onQtyChange={setQty}
+      portfolios={portfolios}
+      selectedPortfolioId={selectedPortfolioId}
+      onPortfolioChange={setSelectedPortfolioId}
+      submitting={submitting}
+      submitError={submitError}
       onClose={() => {
         setIsModalOpen(false);
         setQty("");
         setLimitPrice(null);
+        setSubmitError(null);
       }}
-      onConfirm={() => {
-        console.log({
-          side: orderSide,
-          type: orderType,
-          qty,
-          limitPrice,
-        });
-        setIsModalOpen(false);
+      onConfirm={async () => {
+        if (!ticker || !selectedPortfolioId || !userId) {
+          setSubmitError("Missing portfolio, ticker, or login info.");
+          return;
+        }
+        const quantity = parseInt(qty, 10);
+        if (!quantity || quantity <= 0) {
+          setSubmitError("Enter a valid quantity.");
+          return;
+        }
+
+        // set price
+        let price: number;
+        if (orderType === "limit" && limitPrice != null) {
+          price = limitPrice;
+        } else if (orderSide === "buy" && bestAsk != null) {
+          price = bestAsk;
+        } else if (orderSide === "sell" && bestBid != null) {
+          price = bestBid;
+        } else {
+          setSubmitError("No market price available.");
+          return;
+        }
+
+        try {
+          setSubmitting(true);
+          setSubmitError(null);
+          await createTransaction({
+            user_id: userId,
+            portfolio_id: selectedPortfolioId,
+            ticker_id: ticker.ticker_id,
+            type: orderSide === "buy" ? "BUY" : "SELL",
+            price_per_share: price,
+            quantity,
+            timestamp: new Date().toISOString(),
+          });
+          setIsModalOpen(false);
+          setQty("");
+          setLimitPrice(null);
+          setSubmitError(null);
+        } catch (err: any) {
+          const msg =
+            err?.response?.data?.detail || err.message || "Transaction failed.";
+          setSubmitError(msg);
+        } finally {
+          setSubmitting(false);
+        }
       }}
     />
     </>

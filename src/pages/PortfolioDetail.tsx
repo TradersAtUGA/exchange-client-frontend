@@ -1,25 +1,28 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPortfolioHoldings, getPortfolioTranscations } from "../services/portfolio";
+import { getTickerById } from "../services/ticker";
 import Navbar from "../components/Navbar";
 import styles from "./PortfolioDetail.module.css";
 
 interface HoldingOut {
   holdingId: number;
   ticker_id: number;
+  tickerSymbol: string | null;
   quantity: number;
   averagePrice: number;
 }
 
-interface TransactionOut {
-  transactionId: number;
-  portfolioId: number;
-  tickerId: number;
-  type: "YES" | "NO";
-  quantity: number;
-  price: number;
-  total: number;
-  timestamp: string;
+interface TransactionOut{
+    transactionId: number,
+    portfolioId: number,
+    ticker_id: number,
+    tickerSymbol: string | null,
+    type: "BUY" | "SELL",
+    quantity: number,
+    price: number,
+    total: number,
+    timestamp: string
 }
 
 export default function PortfolioDetail() {
@@ -44,8 +47,22 @@ export default function PortfolioDetail() {
           getPortfolioHoldings(parseInt(portfolioId)),
           getPortfolioTranscations(parseInt(portfolioId)),
         ]);
-        setHoldings(holdingsData);
-        setTransactions(transactionsData);
+
+        const holdingSymbols = await Promise.all(
+          holdingsData.map(async (holding) => {
+            const ticker = await getTickerById(Number(holding.ticker_id));
+            return { ...holding, tickerSymbol: ticker.symbol };
+          })
+        )
+        setHoldings(holdingSymbols);
+        
+        const withSymbols = await Promise.all(
+          transactionsData.map(async (tx) => {
+            const ticker = await getTickerById(Number(tx.ticker_id));
+            return { ...tx, tickerSymbol: ticker.symbol };
+          })
+        );
+        setTransactions(withSymbols);
       } catch (err: any) {
         setError(err.message || "Failed to fetch portfolio details");
       } finally {
@@ -113,8 +130,7 @@ export default function PortfolioDetail() {
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>Holding ID</th>
-                      <th>Ticker ID</th>
+                      <th>Ticker</th>
                       <th>Quantity</th>
                       <th>Avg Price</th>
                     </tr>
@@ -122,8 +138,7 @@ export default function PortfolioDetail() {
                   <tbody>
                     {holdings.map((holding) => (
                       <tr key={holding.holdingId}>
-                        <td>{holding.holdingId}</td>
-                        <td>{holding.ticker_id}</td>
+                        <td>{holding.tickerSymbol}</td>
                         <td>{holding.quantity}</td>
                         <td>${holding.averagePrice.toFixed(2)}</td>
                       </tr>
@@ -144,8 +159,7 @@ export default function PortfolioDetail() {
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Ticker ID</th>
+                      <th>Ticker</th>
                       <th>Type</th>
                       <th>Quantity</th>
                       <th>Price</th>
@@ -156,10 +170,9 @@ export default function PortfolioDetail() {
                   <tbody>
                     {transactions.map((transaction) => (
                       <tr key={transaction.transactionId}>
-                        <td>{transaction.transactionId}</td>
-                        <td>{transaction.tickerId}</td>
+                        <td>{transaction.tickerSymbol}</td>
                         <td>
-                          <span className={transaction.type === "YES" ? styles.buyBadge : styles.sellBadge}>
+                          <span className={transaction.type === "BUY" ? styles.buyBadge : styles.sellBadge}>
                             {transaction.type}
                           </span>
                         </td>
