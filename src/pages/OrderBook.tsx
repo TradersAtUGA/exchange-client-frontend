@@ -28,6 +28,7 @@ export default function OrderBook() {
   const { symbol = "TSLA" } = useParams<{ symbol: string }>();
   const [ticker, setTicker] = useState<Ticker | null>(null);
   const [levels, setLevels] = useState<Level[]>([]);
+  const [simulate, setSimulate] = useState(false);
 
   // Placing orders
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -110,12 +111,114 @@ export default function OrderBook() {
 
   // scroll to market price
   const centerRowRef = useRef<HTMLDivElement>(null);
+  const isFirstLoad = useRef(true);
   useEffect(() => {
-    if (levels.length > 0 && centerRowRef.current) {
+    if (levels.length > 0 && centerRowRef.current && isFirstLoad.current) {
       centerRowRef.current.scrollIntoView({ block: "center" });
+      isFirstLoad.current = false;
     }
   }, [levels]);
 
+  // bot activity
+  useEffect(() => {
+    if (levels.length === 0 || !simulate) return;
+
+    const interval = setInterval(() => {
+      setLevels(prev => {
+        const next = prev.map(l => ({ ...l }));
+
+        const tick = 0.25;
+        /* const centerPrice = Math.random() < 0.5 ? bestBid : bestAsk;
+        console.log(`Simulating order activity around ${centerPrice.toFixed(2)}`); */
+        // Find best bid and ask
+        /* const bestAskIdx = next.findIndex(l => l.askSize);
+        const bestBidIdx = next.map((l, i) => ({ l, i }))
+          .filter(({ l }) => l.bidSize)
+          .sort((a, b) => b.l.price - a.l.price)[0]?.i; */
+
+        const bestAskIdx = next.map((l, i) => ({ l, i }))
+          .filter(({ l }) => l.askSize)
+          .sort((a, b) => a.l.price - b.l.price)[0]?.i ?? -1;
+
+        // Best bid = HIGHEST price with bidSize  
+        const bestBidIdx = next.map((l, i) => ({ l, i }))
+          .filter(({ l }) => l.bidSize)
+          .sort((a, b) => b.l.price - a.l.price)[0]?.i ?? -1;
+
+        const bestAskPrice = bestAskIdx !== -1 ? next[bestAskIdx].price : null;
+        const bestBidPrice = bestBidIdx !== undefined ? next[bestBidIdx].price : null;
+
+        const centerPrice = bestAskPrice !== null && bestBidPrice !== null
+          ? Math.random() < .5 ? bestBidPrice : bestAskPrice
+          : bestAskPrice ?? bestBidPrice ?? next[Math.floor(next.length / 2)].price;
+        console.log(`Best Bid: ${bestBidPrice}, Best Ask: ${bestAskPrice}`);
+        console.log(`Simulating order activity around ${centerPrice.toFixed(2)}`);
+        // Generate a new order: random price within ~3 ticks of center, random size
+        const side: "bid" | "ask" = Math.random() < 0.5 ? "bid" : "ask";
+        const offset = Math.random() < .7 ? 0 : Math.floor(Math.random() * 3) - 1;
+        const orderPrice = parseFloat(
+          (side === "bid"
+            ? centerPrice - offset * tick   // bids come in at or below center
+            : centerPrice + offset * tick   // asks come in at or above center
+          ).toFixed(2)
+        );
+        const orderSize = Math.floor(Math.random() * 6) + 1;
+
+        const targetIdx = next.findIndex(l => l.price === orderPrice);
+        if (targetIdx === -1) return next; // price not in ladder, skip
+        //console.log(`New ${side === "bid" ? "BUY" : "SELL"} order: ${orderSize} @ ${orderPrice}`);
+        if (side === "bid") {
+          if (bestAskPrice !== null && orderPrice >= bestAskPrice) {
+            // Aggressive bid — fills best ask
+            const remaining = (next[bestAskIdx].askSize ?? 0) - orderSize;
+            next[bestAskIdx] = {
+              ...next[bestAskIdx],
+              askSize: remaining > 0 ? remaining : undefined,
+            };
+          } else if (next[targetIdx].askSize) {
+            // Passive bid but landed on a level that has an ask — fill it
+            const remaining = (next[targetIdx].askSize ?? 0) - orderSize;
+            next[targetIdx] = {
+              ...next[targetIdx],
+              askSize: remaining > 0 ? remaining : undefined,
+            };
+          } else {
+            // Truly passive — place the bid
+            next[targetIdx] = {
+              ...next[targetIdx],
+              bidSize: (next[targetIdx].bidSize ?? 0) + orderSize,
+            };
+          }
+        } else {
+          if (bestBidPrice !== null && orderPrice <= bestBidPrice) {
+            // Aggressive ask — fills best bid
+            const remaining = (next[bestBidIdx!].bidSize ?? 0) - orderSize;
+            next[bestBidIdx!] = {
+              ...next[bestBidIdx!],
+              bidSize: remaining > 0 ? remaining : undefined,
+            };
+          } else if (next[targetIdx].bidSize) {
+            // Passive ask but landed on a level that has a bid — fill it
+            const remaining = (next[targetIdx].bidSize ?? 0) - orderSize;
+            next[targetIdx] = {
+              ...next[targetIdx],
+              bidSize: remaining > 0 ? remaining : undefined,
+            };
+          } else {
+            // Truly passive — place the ask
+            next[targetIdx] = {
+              ...next[targetIdx],
+              askSize: (next[targetIdx].askSize ?? 0) + orderSize,
+            };
+          }
+        }
+
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [levels.length, simulate]);
   // useful derived values
   const maxSize = useMemo(() => {
     let m = 1;
@@ -213,6 +316,9 @@ export default function OrderBook() {
           </div>
 
           <div className="market-buttons">
+            <button onClick={() => setSimulate(!simulate)}>
+              {simulate ? "Stop Simulation" : "Start Simulation"}
+            </button>
             <button
               onClick={handleClickMarketBuy}
               className="buy-button"
@@ -287,8 +393,8 @@ export default function OrderBook() {
                   {/* Center Price */}
                   <div className="orderbook-cell price-cell">
                     <div className={`price-display ${isBestBid ? 'best-bid' :
-                        isBestAsk ? 'best-ask' :
-                          'normal'
+                      isBestAsk ? 'best-ask' :
+                        'normal'
                       }`}>
                       {lvl.price.toFixed(2)}
                     </div>
