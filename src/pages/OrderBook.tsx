@@ -8,6 +8,7 @@ import { getTickerBySymbol } from "../services/ticker";
 import { getUserPortfolios } from "../services/portfolio";
 import { createTransaction } from "../services/transaction";
 import { useAuth } from "../components/AuthContext";
+import TradeLog from "../components/TradeLog";
 
 type Level = {
   // undefined bid or ask sizes mean there is no volume at that price
@@ -44,6 +45,19 @@ export default function OrderBook() {
   const [selectedPortfolioId, setSelectedPortfolioId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Trade log
+  type TradeEvent = {
+    id: number;
+    side: "buy" | "sell";
+    price: number;
+    size: number;
+    timestamp: Date;
+    type: "aggressive" | "passive";
+  };
+  const [tradeLog, setTradeLog] = useState<TradeEvent[]>([]);
+  const [isTradeLogOpen, setIsTradeLogOpen] = useState(true);
+  const tradeIdRef = useRef(1);
 
   // get ticker info
   useEffect(() => {
@@ -122,7 +136,6 @@ export default function OrderBook() {
   // bot activity
   useEffect(() => {
     if (levels.length === 0 || !simulate) return;
-
     const interval = setInterval(() => {
       setLevels(prev => {
         const next = prev.map(l => ({ ...l }));
@@ -212,7 +225,14 @@ export default function OrderBook() {
             };
           }
         }
-
+        setTradeLog(prev => [{
+          id: tradeIdRef.current++,
+          side: (side === "bid" ? "buy" : "sell") as "buy" | "sell",
+          price: orderPrice,
+          size: orderSize,
+          timestamp: new Date(),
+          type: (orderPrice >= (bestAskPrice ?? Infinity) || orderPrice <= (bestBidPrice ?? 0) ? "aggressive" : "passive") as "aggressive" | "passive",
+        }, ...prev].slice(0, 100)); // keep last 100
         return next;
       });
     }, 1000);
@@ -320,6 +340,25 @@ export default function OrderBook() {
               {simulate ? "Stop Simulation" : "Start Simulation"}
             </button>
             <button
+              onClick={() => setIsTradeLogOpen(!isTradeLogOpen)}
+              style={{
+                background: isTradeLogOpen ? "#374151" : "#1f2937",
+                border: "1px solid #374151",
+                borderRadius: "8px",
+                color: isTradeLogOpen ? "#60a5fa" : "#d1d5db",
+                cursor: "pointer",
+                padding: "8px 12px",
+                fontSize: "14px",
+                fontWeight: "700",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              title="Toggle Order Flow"
+            >
+              {isTradeLogOpen ? "Hide Log" : "Show Log"}
+            </button>
+            <button
               onClick={handleClickMarketBuy}
               className="buy-button"
             >
@@ -333,9 +372,14 @@ export default function OrderBook() {
             </button>
           </div>
         </div>
-
-        <div className="orderbook-panel">
-          <div className="orderbook-header-row">
+        <div style={{ display: "flex", gap: "16px", flex: 1, minHeight: 0 }}>
+          {isTradeLogOpen && (
+            <div style={{ flex: "0 1 auto", minHeight: 0 }}>
+              <TradeLog trades={tradeLog} onClose={() => setIsTradeLogOpen(false)} />
+            </div>
+          )}
+          <div className="orderbook-panel" style={{ flex: 2 }}>
+            <div className="orderbook-header-row">
             <div className="header-cell bid-size">Bid Size</div>
             <div className="header-cell bid">Bid</div>
             <div className="header-cell price">Price</div>
@@ -434,7 +478,11 @@ export default function OrderBook() {
               );
             })}
           </div>
+          </div>
+          
         </div>
+
+        
 
         {/* Spread and market info */}
         <div className="market-info">
