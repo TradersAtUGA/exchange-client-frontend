@@ -6,8 +6,11 @@
   margin: 0 auto;
   padding: 80px 16px 16px;
   background: #000000;
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  box-sizing: border-box;
 }
 
 .orderbook-header {
@@ -95,6 +98,10 @@
   border: 1px solid #374151;
   overflow: hidden;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  flex: 1;
+  min-height: 0; /* critical — prevents flex child from overflowing */
+  display: flex;
+  flex-direction: column;
 }
 
 .orderbook-header-row {
@@ -136,7 +143,8 @@
 }
 
 .orderbook-ladder {
-  height: 600px;
+  flex: 1;
+  min-height: 0; /* critical */
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #4b5563 #1f2937;
