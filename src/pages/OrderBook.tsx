@@ -11,9 +11,10 @@ import { useAuth } from "../components/AuthContext";
 import TradeLog from "../components/TradeLog";
 import CandleChart from "../components/CandleChart";
 import { useBotSimulation } from "../hooks/useBotSimulation";
+import type {CandleStore} from "../hooks/useBotSimulation";
+
 
 type Level = {
-  // undefined bid or ask sizes mean there is no volume at that price
   price: number;
   bidSize?: number;
   askSize?: number;
@@ -23,9 +24,16 @@ type Ticker = {
   ticker_id: number;
   symbol: string;
   name: string;
-}
+};
 
-//hard coded data
+type TradeEvent = {
+  id: number;
+  side: "buy" | "sell";
+  price: number;
+  size: number;
+  timestamp: Date;
+  type: "aggressive" | "passive";
+};
 
 export default function OrderBook() {
   const { symbol = "TSLA" } = useParams<{ symbol: string }>();
@@ -49,28 +57,25 @@ export default function OrderBook() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Trade log
-  type TradeEvent = {
-    id: number;
-    side: "buy" | "sell";
-    price: number;
-    size: number;
-    timestamp: Date;
-    type: "aggressive" | "passive";
-  };
   const [tradeLog, setTradeLog] = useState<TradeEvent[]>([]);
   const [isTradeLogOpen, setIsTradeLogOpen] = useState(true);
   const tradeIdRef = useRef(1);
+  const candleStoreRef = useRef<CandleStore>(new Map());
+  const [candleStore, setCandleStore] = useState<CandleStore>(new Map());
 
-  useBotSimulation(simulate, levels, setLevels, setTradeLog, tradeIdRef);
+  useBotSimulation(
+    simulate, levels, setLevels, setTradeLog, tradeIdRef,
+    (store) => { candleStoreRef.current = store; setCandleStore(new Map(store)); }
+  );
 
-  // get ticker info
+  // Get ticker info
   useEffect(() => {
     if (!symbol) return;
     async function fetchTicker() {
       try {
         const data = await getTickerBySymbol(symbol);
         setTicker(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching ticker:", error);
         setError(error.message || "Failed to fetch ticker information.");
       }
@@ -78,16 +83,14 @@ export default function OrderBook() {
     fetchTicker();
   }, [symbol]);
 
-  // fetch user portfolios
+  // Fetch user portfolios
   useEffect(() => {
     if (!userId) return;
     async function fetchPortfolios() {
       try {
         const data = await getUserPortfolios(userId!);
-        setPortfolios(data.map((p) => ({ portfolioId: p.portfolioId, name: p.name })));
-        if (data.length > 0) {
-          setSelectedPortfolioId(data[0].portfolioId);
-        }
+        setPortfolios(data.map((p: any) => ({ portfolioId: p.portfolioId, name: p.name })));
+        if (data.length > 0) setSelectedPortfolioId(data[0].portfolioId);
       } catch (err) {
         console.error("Error fetching portfolios:", err);
       }
@@ -95,8 +98,9 @@ export default function OrderBook() {
     fetchPortfolios();
   }, [userId]);
 
+  // Init order book levels
   useEffect(() => {
-    const marketPrice = 98 + (.25 * Math.floor(Math.random() * 17)); // Random between 98 and 102
+    const marketPrice = 98 + 0.25 * Math.floor(Math.random() * 17);
     const tick = 0.25;
     const rows = 41;
     const top = marketPrice + Math.floor(rows / 2) * tick;
@@ -104,30 +108,20 @@ export default function OrderBook() {
     const data: Level[] = [];
     for (let i = 0; i < rows; i++) {
       const price = parseFloat((top - i * tick).toFixed(2));
-
-      let bidSize = undefined;
-      let askSize = undefined;
+      let bidSize: number | undefined;
+      let askSize: number | undefined;
 
       if (price <= marketPrice) {
-        // This is a bid level (at or below market price)
-        bidSize = Math.round(Math.random() * 10);
-        bidSize = bidSize > 0 ? bidSize : undefined;
+        bidSize = Math.round(Math.random() * 10) || undefined;
       } else {
-        // This is an ask level (above market price)
-        askSize = Math.round(Math.random() * 10);
-        askSize = askSize > 0 ? askSize : undefined;
+        askSize = Math.round(Math.random() * 10) || undefined;
       }
-
-      data.push({
-        price,
-        bidSize,
-        askSize,
-      });
+      data.push({ price, bidSize, askSize });
     }
     setLevels(data);
   }, []);
 
-  // scroll to market price
+  // Scroll to market price on first load
   const centerRowRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef(true);
   useEffect(() => {
@@ -137,7 +131,6 @@ export default function OrderBook() {
     }
   }, [levels]);
 
-  // useful derived values
   const maxSize = useMemo(() => {
     let m = 1;
     levels.forEach((l) => {
@@ -147,80 +140,44 @@ export default function OrderBook() {
     return m;
   }, [levels]);
 
-  const bestBid = useMemo(() => {
-    const b = [...levels].filter((l) => l.bidSize).sort((a, b) => b.price - a.price)[0];
-    return b?.price;
-  }, [levels]);
+  const bestBid = useMemo(
+    () => [...levels].filter((l) => l.bidSize).sort((a, b) => b.price - a.price)[0]?.price,
+    [levels]
+  );
+  const bestAsk = useMemo(
+    () => [...levels].filter((l) => l.askSize).sort((a, b) => a.price - b.price)[0]?.price,
+    [levels]
+  );
 
-  const bestAsk = useMemo(() => {
-    const a = [...levels].filter((l) => l.askSize).sort((a, b) => a.price - b.price)[0];
-    return a?.price;
-  }, [levels]);
-
-  const openMarketOrderModal = (side: "buy" | "sell") => {
-    setOrderSide(side);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setOrderSide(null);
-  };
-
-  // --- Interaction handlers (wire these to backend later) ---
-  const handleClickMarketBuy = () => {
-    setOrderSide("buy");
-    setOrderType("market");
-    setIsModalOpen(true);
-  };
-
-  const handleClickMarketSell = () => {
-    setOrderSide("sell");
-    setOrderType("market");
-    setIsModalOpen(true);
-  };
-
-  const handleClickLevelBuy = (price: number) => {
-    setOrderSide("buy");
-    setOrderType("limit");
-    setLimitPrice(price);
-    setIsModalOpen(true);
-  };
-
-  const handleClickLevelSell = (price: number) => {
-    setOrderSide("sell");
-    setOrderType("limit");
-    setLimitPrice(price);
-    setIsModalOpen(true);
-  };
+  const handleClickMarketBuy  = () => { setOrderSide("buy");  setOrderType("market"); setIsModalOpen(true); };
+  const handleClickMarketSell = () => { setOrderSide("sell"); setOrderType("market"); setIsModalOpen(true); };
+  const handleClickLevelBuy   = (price: number) => { setOrderSide("buy");  setOrderType("limit"); setLimitPrice(price); setIsModalOpen(true); };
+  const handleClickLevelSell  = (price: number) => { setOrderSide("sell"); setOrderType("limit"); setLimitPrice(price); setIsModalOpen(true); };
 
   if (!symbol) {
     return <>
       <Navbar />
       <div className="orderbook-container">
-        <div style={{ color: '#fff', textAlign: 'center', padding: '40px' }}>
-          No symbol found.
-        </div>
+        <div style={{ color: "#fff", textAlign: "center", padding: "40px" }}>No symbol found.</div>
       </div>
-    </>
+    </>;
   }
 
   if (error) {
     return <>
       <Navbar />
       <div className="orderbook-container">
-        <div style={{ color: '#fff', textAlign: 'center', padding: '40px' }}>
-          {error}
-        </div>
+        <div style={{ color: "#fff", textAlign: "center", padding: "40px" }}>{error}</div>
       </div>
-    </>
+    </>;
   }
 
   return (
     <>
       <Navbar />
       <div className="orderbook-container">
-        {/* Header with symbol info and market buttons */}
+
+        {/* ── Top header ── */}
         <div className="orderbook-header">
           <div className="symbol-info">
             <div>
@@ -228,55 +185,54 @@ export default function OrderBook() {
               <div className="symbol-description">{ticker?.name}</div>
             </div>
             <div>
-              <div className="last-price">{levels[Math.floor(levels.length / 2)]?.price?.toFixed(2) ?? "-"}</div>
+              <div className="last-price">
+                {levels[Math.floor(levels.length / 2)]?.price?.toFixed(2) ?? "-"}
+              </div>
               <div className="last-price-label">Last</div>
             </div>
           </div>
 
           <div className="market-buttons">
-            <button onClick={() => setSimulate(!simulate)}>
-              {simulate ? "Stop Simulation" : "Start Simulation"}
+            <button
+              className={`sim-button ${simulate ? "sim-active" : ""}`}
+              onClick={() => setSimulate(!simulate)}
+            >
+              {simulate ? "Stop Sim" : "Start Sim"}
             </button>
             <button
               onClick={() => setIsTradeLogOpen(!isTradeLogOpen)}
               style={{
-                background: isTradeLogOpen ? "#374151" : "#1f2937",
-                border: "1px solid #374151",
+                background:   isTradeLogOpen ? "#374151" : "#1f2937",
+                border:       "1px solid #374151",
                 borderRadius: "8px",
-                color: isTradeLogOpen ? "#60a5fa" : "#d1d5db",
-                cursor: "pointer",
-                padding: "8px 12px",
-                fontSize: "14px",
-                fontWeight: "700",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                color:        isTradeLogOpen ? "#60a5fa" : "#d1d5db",
+                cursor:       "pointer",
+                padding:      "8px 12px",
+                fontSize:     "14px",
+                fontWeight:   "700",
+                display:      "flex",
+                alignItems:   "center",
               }}
-              title="Toggle Order Flow"
             >
               {isTradeLogOpen ? "Hide Log" : "Show Log"}
             </button>
-            <button
-              onClick={handleClickMarketBuy}
-              className="buy-button"
-            >
-              BUY MARKET
-            </button>
-            <button
-              onClick={handleClickMarketSell}
-              className="sell-button"
-            >
-              SELL MARKET
-            </button>
+            <button onClick={handleClickMarketBuy}  className="buy-button">BUY MARKET</button>
+            <button onClick={handleClickMarketSell} className="sell-button">SELL MARKET</button>
           </div>
         </div>
-        <div style={{ display: "flex", gap: "16px", flex: 1, minHeight: 0 }}>
+
+        {/* ── Main body: [trade log] [order book] [candle chart] ── */}
+        <div className="orderbook-body">
+
+          {/* Trade log — fixed width, collapsible */}
           {isTradeLogOpen && (
-            <div style={{ flex: "0 1 auto", minHeight: 0 }}>
+            <div className="panel-tradelog">
               <TradeLog trades={tradeLog} onClose={() => setIsTradeLogOpen(false)} />
             </div>
           )}
-          <div className="orderbook-panel" style={{ flex: 2 }}>
+
+          {/* Order book ladder */}
+          <div className="orderbook-panel panel-ladder">
             <div className="orderbook-header-row">
               <div className="header-cell bid-size">Bid Size</div>
               <div className="header-cell bid">Bid</div>
@@ -285,33 +241,26 @@ export default function OrderBook() {
               <div className="header-cell ask-size">Ask Size</div>
             </div>
 
-            {/* Orderbook ladder */}
             <div className="orderbook-ladder">
               {levels.map((lvl, index) => {
-                const bidPct = lvl.bidSize ? Math.min(100, (lvl.bidSize / maxSize) * 100) : 0;
-                const askPct = lvl.askSize ? Math.min(100, (lvl.askSize / maxSize) * 100) : 0;
-
+                const bidPct  = lvl.bidSize ? Math.min(100, (lvl.bidSize / maxSize) * 100) : 0;
+                const askPct  = lvl.askSize ? Math.min(100, (lvl.askSize / maxSize) * 100) : 0;
                 const isBestBid = bestBid === lvl.price;
                 const isBestAsk = bestAsk === lvl.price;
-                const isCenter = index === Math.floor(levels.length / 2);
+                const isCenter  = index === Math.floor(levels.length / 2);
 
                 return (
                   <div
                     key={lvl.price}
                     ref={isCenter ? centerRowRef : null}
-                    className={`orderbook-row ${isCenter ? 'center-row' : ''}`}
+                    className={`orderbook-row ${isCenter ? "center-row" : ""}`}
                   >
                     {/* Bid Size */}
                     <div className="orderbook-cell bid-size-cell">
                       {lvl.bidSize ? (
                         <>
-                          <div
-                            className="bid-size-bar"
-                            style={{ width: `${bidPct}%` }}
-                          />
-                          <div className="bid-size-text">
-                            {lvl.bidSize.toLocaleString()}
-                          </div>
+                          <div className="bid-size-bar" style={{ width: `${bidPct}%` }} />
+                          <div className="bid-size-text">{lvl.bidSize.toLocaleString()}</div>
                         </>
                       ) : (
                         <div className="empty-cell">-</div>
@@ -322,7 +271,7 @@ export default function OrderBook() {
                     <div className="orderbook-cell bid-price-cell">
                       {lvl.bidSize ? (
                         <button
-                          className={`bid-price-button ${isBestBid ? 'best-bid' : 'normal-bid'}`}
+                          className={`bid-price-button ${isBestBid ? "best-bid" : "normal-bid"}`}
                           onClick={() => handleClickLevelSell(lvl.price)}
                         >
                           {lvl.price.toFixed(2)}
@@ -334,10 +283,7 @@ export default function OrderBook() {
 
                     {/* Center Price */}
                     <div className="orderbook-cell price-cell">
-                      <div className={`price-display ${isBestBid ? 'best-bid' :
-                        isBestAsk ? 'best-ask' :
-                          'normal'
-                        }`}>
+                      <div className={`price-display ${isBestBid ? "best-bid" : isBestAsk ? "best-ask" : "normal"}`}>
                         {lvl.price.toFixed(2)}
                       </div>
                     </div>
@@ -346,7 +292,7 @@ export default function OrderBook() {
                     <div className="orderbook-cell ask-price-cell">
                       {lvl.askSize ? (
                         <button
-                          className={`ask-price-button ${isBestAsk ? 'best-ask' : 'normal-ask'}`}
+                          className={`ask-price-button ${isBestAsk ? "best-ask" : "normal-ask"}`}
                           onClick={() => handleClickLevelBuy(lvl.price)}
                         >
                           {lvl.price.toFixed(2)}
@@ -360,13 +306,8 @@ export default function OrderBook() {
                     <div className="orderbook-cell ask-size-cell">
                       {lvl.askSize ? (
                         <>
-                          <div
-                            className="ask-size-bar"
-                            style={{ width: `${askPct}%` }}
-                          />
-                          <div className="ask-size-text">
-                            {lvl.askSize.toLocaleString()}
-                          </div>
+                          <div className="ask-size-bar" style={{ width: `${askPct}%` }} />
+                          <div className="ask-size-text">{lvl.askSize.toLocaleString()}</div>
                         </>
                       ) : (
                         <div className="empty-cell">-</div>
@@ -376,19 +317,16 @@ export default function OrderBook() {
                 );
               })}
             </div>
-
-
-
           </div>
-          <div style={{ flex: "0 1 auto", minHeight: 0 }}>
-            <CandleChart trades={tradeLog} />
+
+          {/* Candle chart — fixed width panel */}
+          <div className="panel-chart">
+            <CandleChart candleStore={candleStore} />
           </div>
 
         </div>
 
-
-
-        {/* Spread and market info */}
+        {/* ── Footer market info ── */}
         <div className="market-info">
           <div className="market-info-left">
             <div className="market-info-item">
@@ -407,11 +345,13 @@ export default function OrderBook() {
             </div>
           </div>
           <div className="live-indicator">
-            <span className="live-dot"></span>
+            <span className="live-dot" />
             Live Data
           </div>
         </div>
+
       </div>
+
       <BuySellModal
         isOpen={isModalOpen}
         orderSide={orderSide}
@@ -426,56 +366,39 @@ export default function OrderBook() {
         onPortfolioChange={setSelectedPortfolioId}
         submitting={submitting}
         submitError={submitError}
-        onClose={() => {
-          setIsModalOpen(false);
-          setQty("");
-          setLimitPrice(null);
-          setSubmitError(null);
-        }}
+        onClose={() => { setIsModalOpen(false); setQty(""); setLimitPrice(null); setSubmitError(null); }}
         onConfirm={async () => {
           if (!ticker || !selectedPortfolioId || !userId) {
             setSubmitError("Missing portfolio, ticker, or login info.");
             return;
           }
           const quantity = parseInt(qty, 10);
-          if (!quantity || quantity <= 0) {
-            setSubmitError("Enter a valid quantity.");
-            return;
-          }
+          if (!quantity || quantity <= 0) { setSubmitError("Enter a valid quantity."); return; }
 
-          // set price
           let price: number;
-          if (orderType === "limit" && limitPrice != null) {
-            price = limitPrice;
-          } else if (orderSide === "buy" && bestAsk != null) {
-            price = bestAsk;
-          } else if (orderSide === "sell" && bestBid != null) {
-            price = bestBid;
-          } else {
-            setSubmitError("No market price available.");
-            return;
-          }
+          if (orderType === "limit" && limitPrice != null) price = limitPrice;
+          else if (orderSide === "buy"  && bestAsk != null) price = bestAsk;
+          else if (orderSide === "sell" && bestBid != null) price = bestBid;
+          else { setSubmitError("No market price available."); return; }
 
           try {
             setSubmitting(true);
             setSubmitError(null);
             await createTransaction({
-              user_id: userId,
-              portfolio_id: selectedPortfolioId,
-              ticker_id: ticker.ticker_id,
-              type: orderSide === "buy" ? "BUY" : "SELL",
-              price_per_share: price,
+              user_id:          userId,
+              portfolio_id:     selectedPortfolioId,
+              ticker_id:        ticker.ticker_id,
+              type:             orderSide === "buy" ? "BUY" : "SELL",
+              price_per_share:  price,
               quantity,
-              timestamp: new Date().toISOString(),
+              timestamp:        new Date().toISOString(),
             });
             setIsModalOpen(false);
             setQty("");
             setLimitPrice(null);
             setSubmitError(null);
           } catch (err: any) {
-            const msg =
-              err?.response?.data?.detail || err.message || "Transaction failed.";
-            setSubmitError(msg);
+            setSubmitError(err?.response?.data?.detail || err.message || "Transaction failed.");
           } finally {
             setSubmitting(false);
           }

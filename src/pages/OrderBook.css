@@ -374,4 +374,50 @@
   margin-right: 8px;
 }
 
+.orderbook-body {
+  display:    flex;
+  gap:        12px;
+  flex:       1;
+  min-height: 0;         /* critical — lets children scroll independently */
+  overflow:   hidden;
+}
 
+/* Trade log panel — natural width, scrollable internally */
+.panel-tradelog {
+  flex:       0 0 auto;
+  min-height: 0;
+}
+
+/* Order book ladder — takes remaining space */
+.panel-ladder {
+  flex:       1 1 0;
+  min-width:  0;
+  min-height: 0;
+}
+
+/* Candle chart panel — fixed 380px wide, full height of body */
+.panel-chart {
+  flex:       0 0 380px;
+  min-height: 0;
+  display:    flex;
+  flex-direction: column;
+}
+
+/* Sim button variants */
+.sim-button {
+  background:   #1f2937;
+  border:       1px solid #374151;
+  border-radius: 8px;
+  color:        #9ca3af;
+  cursor:       pointer;
+  padding:      8px 14px;
+  font-size:    14px;
+  font-weight:  700;
+  transition:   background 0.15s, color 0.15s;
+}
+.sim-button:hover    { background: #2d3d52; color: #d1d5db; }
+.sim-button.sim-active {
+  background: #1a3a28;
+  border-color: #2a6a48;
+  color: #4ade80;
+}
